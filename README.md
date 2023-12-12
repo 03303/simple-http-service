@@ -3,6 +3,14 @@
 
 ## Setup
 
+```bash
+git clone https://github.com/03303/simple-http-service.git
+
+cd simple-http-service
+
+npm i
+```
+
 ### Running Substrate Node
 ```bash
 ./target/release/node-template --dev
