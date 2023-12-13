@@ -11,6 +11,20 @@ import path from "path";
 export const ROOT_DIR = '/tmp/paymentChannels';
 export const extrinsicsMap = new Map<string, boolean>();
 
+interface Service {
+    id: string,
+    organization: string,
+    owner: string,
+    channels: number,
+    name: string,
+    version: number,
+    metadata: string,
+    price: string,
+    minimum_calls: number,
+    expiration_threshold: number,
+    trials: number,
+}
+
 interface Channel {
     id: string,
     organization: string,
@@ -90,6 +104,27 @@ export const getChannelsByOwner = async (api: ApiPromise, owner: string) => {
         channels.push(channel.toHuman());
     });
     return channels;
+}
+
+export const getService = async (api: ApiPromise, orgId: string, serviceId: string): Promise<Service> => {
+    const query = await api.query.paymentChannels.services(orgId, serviceId);
+    const s = JSON.parse(query.toString());
+    const service: Service = {
+        id: "",
+        organization: "",
+        service: "",
+        owner: "",
+        channels: 0,
+        name: "",
+        version: 1,
+        metadata: "",
+        price: 0,
+        minimum_calls: 0,
+        expiration_threshold: 0,
+        trials: 0,
+        ...s,
+    };
+    return service;
 }
 
 export const getChannel = async (api: ApiPromise, owner: string, channelId: string): Promise<Channel> => {

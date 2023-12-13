@@ -4,7 +4,7 @@ import axios from "axios";
 
 import { ApiPromise, WsProvider } from '@polkadot/api';
 import { hexToU8a } from '@polkadot/util';
-import { ROOT_DIR, getChannel, readJSON, setupDirs, verifySignature, writeJSON } from "./common";
+import { ROOT_DIR, getChannel, getService, readJSON, verifySignature, writeJSON } from "./common";
 
 const HOST = "0.0.0.0";
 const PORT = 3000;
@@ -30,8 +30,16 @@ const main = async () => {
         try {
             const body = req.body as PaywallBody;
 
+            // Updating the local service (JSON) from chain
+            const localService = await readJSON(`${ROOT_DIR}/service.json`);
+            const service = await getService(api, localService.organization, localService.id);
+            if (service.id === "") throw Error('Service not Found!');
+            await writeJSON(`${ROOT_DIR}/service.json`, service);
+
             const channel = await getChannel(api, body.accountId, body.channelId);
             if (channel.id === "") throw Error('Channel not Found!');
+
+            if (channel.version !== service.version) throw Error(`Channel must be updated (curr: ${channel.version} != ${service.version})!`);
 
             const blockNumber = (await api.rpc.chain.getHeader()!).number.toNumber(); 
             if (channel.expiration <= blockNumber) throw Error('Channel is Expired!');
