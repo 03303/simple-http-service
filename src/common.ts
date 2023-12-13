@@ -15,6 +15,7 @@ interface Channel {
     id: string,
     organization: string,
     service: string,
+    version: number,
     owner: string,
     counter: number,
     price: string,
@@ -98,6 +99,7 @@ export const getChannel = async (api: ApiPromise, owner: string, channelId: stri
         id: "",
         organization: "",
         service: "",
+        version: 1,
         owner: "",
         counter: 0,
         price: "",
@@ -108,27 +110,36 @@ export const getChannel = async (api: ApiPromise, owner: string, channelId: stri
     return channel;
 }
 
-export const buildMessage = (api: ApiPromise, channelIdBytes: Uint8Array, counter: number) => {
+export const buildMessage = (api: ApiPromise, channelIdBytes: Uint8Array, version: number, counter: number) => {
     const constantBytes = new TextEncoder().encode('modlpy/paych____');
     const c = api.registry.createType('u32', counter).toU8a();
-    return blake2AsU8a(new Uint8Array([...constantBytes, ...channelIdBytes, ...c]));
+    const v = api.registry.createType('u32', version).toU8a();
+    return blake2AsU8a(new Uint8Array([...constantBytes, ...channelIdBytes, ...v, ...c]));
 }
 
 export const signChannelCounter = (
     api: ApiPromise,
     signer: KeyringPair,
     channelIdBytes: Uint8Array,
+    version: number,
     counter: number,
 ): [Uint8Array, Uint8Array] => {
-    const message = buildMessage(api, channelIdBytes, counter);
+    const message = buildMessage(api, channelIdBytes, version, counter);
     const sig = signer.sign(message);
     return [sig, message];
 }
 
-export const verifySignature = (api: ApiPromise, address: string, channelIdBytes: Uint8Array, counter: number, signature: Uint8Array) => {
+export const verifySignature = (
+    api: ApiPromise,
+    address: string,
+    channelIdBytes: Uint8Array,
+    version: number,
+    counter: number,
+    signature: Uint8Array
+) => {
     const publicKey = decodeAddress(address);
     const hexPublicKey = u8aToHex(publicKey);
-    const message = buildMessage(api, channelIdBytes, counter);
+    const message = buildMessage(api, channelIdBytes, version, counter);
     return signatureVerify(message, signature, hexPublicKey).isValid;
 }
 

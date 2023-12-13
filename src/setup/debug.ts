@@ -16,16 +16,18 @@ const main = async () => {
     const { owner: serviceOwner, organization: organizationId, id: serviceId } = await readJSON(`${ROOT_DIR}/service.json`);
     const channelId = hashChannelId(signer.address, hexToU8a(organizationId), hexToU8a(serviceId));
 
-    const counter = parseInt(process.argv[3] || "1");
-    const [signature, message] = signChannelCounter(api, signer, channelId, counter);
+    const version = parseInt(process.argv[3] || "1");
+    const counter = parseInt(process.argv[4] || "1");
+    const [signature, message] = signChannelCounter(api, signer, channelId, version, counter);
 
     console.log(`Signer   : ${signer.address}`);
     console.log(`ChannelId: ${u8aToHex(channelId)}`);
+    console.log(`Version  : ${version}`);
     console.log(`Counter  : ${counter}`);
     console.log(`Message  : ${u8aToHex(message)}`);
     console.log(`Signature: ${u8aToHex(signature)}`);
 
-    console.log(`Valid: ${verifySignature(api, signer.address, channelId, counter, signature)}`);
+    console.log(`Valid: ${verifySignature(api, signer.address, channelId, version, counter, signature)}`);
 };
 
 main().catch((error) => {

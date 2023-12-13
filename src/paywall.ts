@@ -41,10 +41,16 @@ const main = async () => {
 
             if (parseInt(localChannel.counter) >= body.counter) throw Error(`Counter too Low (curr: ${localChannel.counter} >= ${body.counter})!`);
 
-            const valid = verifySignature(api, body.accountId, hexToU8a(body.channelId), body.counter, hexToU8a(body.signature));
+            const valid = verifySignature(api, body.accountId, hexToU8a(body.channelId), channel.version, body.counter, hexToU8a(body.signature));
 
             localChannel = { ...localChannel, counter: body.counter, signature: body.signature };
-            const localData = { accountId: body.accountId, channelId: body.channelId, counter: body.counter, signature: body.signature };
+            const localData = {
+                accountId: body.accountId,
+                channelId: body.channelId,
+                version: channel.version,
+                counter: body.counter,
+                signature: body.signature
+            };
 
             if (valid) {
                 const endpoint = req.url.replace(SERVICE_ENDPOINT, '');
